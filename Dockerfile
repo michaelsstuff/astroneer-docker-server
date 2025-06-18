@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM --platform=linux/amd64 ubuntu:24.04
 
 ENV TIMEZONE=America/New_York \
     DEBIAN_FRONTEND=noninteractive \
