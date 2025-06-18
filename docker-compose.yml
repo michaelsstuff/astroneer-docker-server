@@ -1,17 +1,20 @@
-version: "3.5"
 services:
-  ce0:
+  astroneer-server:
     container_name: astroneer-server
     image: astroneer:latest
     ports:
-      - 8777:8777/tcp
-      - 8777:8777/udp
+      - "8777:8777/tcp"
+      - "8777:8777/udp"
     volumes:
       - /opt/servers/Astroneer/serverdata:/astroneer
     networks: 
-      - default
+      - game_net
     tty: true
+    restart: unless-stopped
+    environment:
+      - TIMEZONE=America/New_York
+
 networks:
-  default:
-    external:
-      name: game_net
+  game_net:
+    driver: bridge
+    name: game_net

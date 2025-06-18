@@ -1,27 +1,54 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 ENV TIMEZONE=America/New_York \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    WINEPREFIX=/wine \
+    WINEARCH=win64
 
-RUN apt update && \
-    apt install -y python3-pip software-properties-common supervisor unzip curl xvfb wget rsync net-tools && \
-    apt clean && \
+# Install system packages
+RUN apt-get update && \
+    apt-get install -y \
+        python3-pip \
+        python3-venv \
+        software-properties-common \
+        supervisor \
+        unzip \
+        curl \
+        xvfb \
+        wget \
+        rsync \
+        net-tools \
+        ca-certificates \
+        gnupg \
+        lsb-release && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Add Wine repository and install Wine
 RUN dpkg --add-architecture i386 && \
-    apt update && \
-    apt install -y wine64 wine32 lib32gcc1 && \
-    pip3 install python-valve && \
+    mkdir -pm755 /etc/apt/keyrings && \
+    wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key && \
+    wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -cs)/winehq-$(lsb_release -cs).sources && \
+    apt-get update && \
+    apt-get install -y --install-recommends winehq-stable && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install Python packages (try system packages first, fallback to pip)
+RUN apt-get update && \
+    (apt-get install -y python3-valve || pip3 install --no-cache-dir --break-system-packages python-valve) && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install winetricks
-ADD https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks /usr/bin/winetricks
-RUN chmod +x /usr/bin/winetricks
+RUN wget -q https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks -O /usr/bin/winetricks && \
+    chmod +x /usr/bin/winetricks
 
-RUN apt update \
-    && apt install -y x11vnc strace cabextract \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install additional packages for VNC and debugging
+RUN apt-get update && \
+    apt-get install -y x11vnc strace cabextract && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY . ./
 
@@ -30,6 +57,10 @@ RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime \
     && chmod +x /entrypoint.sh \
     && cd /usr/bin/ \
     && chmod +x astroneer_controller steamcmd_setup
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD supervisorctl status || exit 1
 
 EXPOSE 8777
 

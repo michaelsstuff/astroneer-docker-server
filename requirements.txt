@@ -1,0 +1,2 @@
+# Python dependencies for Astroneer Docker Server
+python-valve>=1.2.1
