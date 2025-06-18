@@ -88,7 +88,9 @@ The server exposes port 8777 (TCP/UDP) for game connections. Server data is pers
 
 ## Based On
 
-Originally based on [docker-conanexiles](https://github.com/alinmear/docker-conanexiles).
+This repository is forked from [alatnet/astroneer-docker-server](https://github.com/alatnet/astroneer-docker-server), which was originally based on [docker-conanexiles](https://github.com/alinmear/docker-conanexiles).
+
+Special thanks to [alatnet](https://github.com/alatnet) for the original Astroneer Docker server implementation.
 
 ## Updates
 
