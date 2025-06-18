@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ${{ vars.REGISTRY }}
-  IMAGE_NAME: astroneer
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/astroneer
 
 jobs:
   build:
